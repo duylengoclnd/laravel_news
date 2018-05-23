@@ -41,7 +41,8 @@ class LoaiTinController extends Controller
 
     public function getsua($id){
        $loaitin = LoaiTin::find($id);
-        return view('admin.loaitin.sua',['LoaiTin'=>$loaitin]);
+       $theloai = TheLoai::all();
+        return view('admin.loaitin.sua',['loaitin'=>$loaitin,'theloai'=>$theloai]);
     }
 
     public function postSua(Request $request,$id){
@@ -57,6 +58,7 @@ class LoaiTinController extends Controller
                 'txtCateName.unique'=>'Tên thể loại đã tồn tại',
             ]);
        $loaitin->Ten = $request->txtCateName;
+       $loaitin->idTheLoai = $request->theloai;
        $loaitin->TenKhongDau = str_slug($request->txtCateName);
        $loaitin->save();
         return redirect('admin/loaitin/danhsach')->with('thongbao','Sửa thành công');

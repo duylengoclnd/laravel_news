@@ -21,7 +21,6 @@ class TinTucController extends Controller
     }
 
     public function postThem(Request $request){
-        // echo $request->txtCateName;
         $this->validate($request,
             [
                 'loaitin'=>'required',
@@ -66,31 +65,59 @@ class TinTucController extends Controller
     }
 
     public function getsua($id){
-       $loaitin = LoaiTin::find($id);
-        return view('admin.loaitin.sua',['LoaiTin'=>$loaitin]);
+        $loaitin = LoaiTin::all();
+        $theloai = TheLoai::all();
+        $tintuc = TinTuc::find($id);
+        return view('admin.tintuc.sua',['tintuc'=>$tintuc,'theloai'=>$theloai,'loaitin'=>$loaitin]);
     }
 
     public function postSua(Request $request,$id){
-       $loaitin = LoaiTin::find($id);
+        $tintuc = TinTuc::find($id);
         $this->validate($request,
             [
-                'txtCateName'=>'required|min:3|max:100|unique:LoaiTin,Ten',
+                'loaitin'=>'required',
+                'tomtat'=>'required',
+                'noidung'=>'required',
+                'tieude'=>'required|min:3',
             ],
             [
-                'txtCateName.required'=>'Bạn chưa nhập tên thể loại',
-                'TetxtCateNamen.min'=>'Độ dài nằm trong khoảng 3 ký tự đến 100 ký tự',
-                'txtCateName.max'=>'Độ dài nằm trong khoảng 3 ký tự đến 100 ký tự',
-                'txtCateName.unique'=>'Tên thể loại đã tồn tại',
+                'loaitin.required'=>'Bạn chưa nhập tên loại tin',
+                'tomtat.required'=>'Bạn chưa nhập tom tat',
+                'noidung.required'=>'Bạn chưa nhập nội dung',
+                'tieude.required'=>'Bạn chưa nhập tên tieu đề',
+                'tieude.min'=>'Độ dài ít nhát 3 ký tự ',
+                // 'tieude.unique'=>'Tiêu đề không được trùng nhau',
             ]);
-       $loaitin->Ten = $request->txtCateName;
-       $loaitin->TenKhongDau = str_slug($request->txtCateName);
-       $loaitin->save();
-        return redirect('admin/loaitin/danhsach')->with('thongbao','Sửa thành công');
+        $tintuc->TieuDe = $request->tieude;
+        $tintuc->TieuDeKhongDau = str_slug($request->tieude);
+        $tintuc->idLoaiTin = $request->loaitin;
+        $tintuc->TomTat = $request->tomtat;
+        $tintuc->NoiDung = $request->noidung;
+        // var_dump($tintuc->TomTat);die;
+        if($request->hasFile('hinhanh')) {
+            $file = $request->file('hinhanh');
+            $duoi = $file->getClientOriginalExtension();
+            if($duoi !='jpg' &&  $duoi !='png' && $duoi !='jpeg' && $duoi !='JPG' &&  $duoi !='PNG' && $duoi !='JPEG'){
+                return redirect('admin/tintuc/them')->with('thongbao','Định dạng ảnh không đúng!');
+            }
+            $name = $file->getClientOriginalName();
+            $hinh = str_random(4)."_".$name;
+            while (file_exists('upload/tintuc/'.$hinh)) {
+                $hinh = str_random(4)."_".$name;
+            }
+            $file->move('upload/tintuc/',$hinh);
+            unlink('upload/tintuc/'.$tintuc->Hinh);
+            $tintuc->Hinh=$hinh;
+
+        }
+
+        $tintuc->save();
+        return redirect('admin/tintuc/danhsach')->with('thongbao','Sửa thành công!');
     }
 
     public function getXoa($id){
-       $loaitin = LoaiTin::find($id);
-       $loaitin->delete();
-        return redirect('admin/loaitin/danhsach')->with('thongbao','Xóa thành công!');
+       // $loaitin = LoaiTin::find($id);
+       // $loaitin->delete();
+       //  return redirect('admin/loaitin/danhsach')->with('thongbao','Xóa thành công!');
     }
 }
